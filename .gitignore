@@ -1,0 +1,11 @@
+node_modules/
+.env
+.DS_Store
+npm-debug.log*
+yarn-error.log
+build/
+dist/
+
+# Windows reserved filename artifacts (avoid git index errors)
+NUL
+backend/NUL
