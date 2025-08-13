@@ -13,7 +13,7 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 4000;
 const HOST = process.env.HOST || '0.0.0.0';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/carbon_net_zero';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://mowsikan02:Mowsi%40123@cluster0.gp6cgyz.mongodb.net/';
 const API_BASE = process.env.API_BASE || '/api';
 const IS_TEST = process.env.NODE_ENV === 'test';
 
