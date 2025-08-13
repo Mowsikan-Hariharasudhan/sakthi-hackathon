@@ -1,59 +1,9 @@
 const express = require('express');
 const EmissionData = require('../models/EmissionData');
+const { sendHighEmissionAlert } = require('../utils/mailer');
+const { sendHighEmissionSMS } = require('../utils/sms');
 
 const router = express.Router();
-
-// Simple Linear Regression helper
-function linearRegression(points) {
-  const n = points.length;
-  const sumX = points.reduce((a, p) => a + p.x, 0);
-  const sumY = points.reduce((a, p) => a + p.y, 0);
-  const sumXY = points.reduce((a, p) => a + p.x * p.y, 0);
-  const sumX2 = points.reduce((a, p) => a + p.x * p.x, 0);
-
-  const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-  const intercept = (sumY - slope * sumX) / n;
-
-  return { slope, intercept };
-}
-
-router.get("/predict", async (req, res) => {
-  try {
-    const minutesAhead = parseInt(req.query.minutesAhead || "60", 10);
-    const recent = await Emission.find({})
-      .sort({ timestamp: -1 })
-      .limit(50)
-      .lean();
-
-    if (recent.length < 2) {
-      return res.json({ error: "Not enough data" });
-    }
-
-    // Map to {x, y} where x = index, y = co2_emissions
-    const points = recent
-      .reverse()
-      .map((r, i) => ({ x: i, y: r.co2_emissions }));
-
-    const { slope, intercept } = linearRegression(points);
-
-    const predictions = [];
-    const lastIndex = points.length - 1;
-    for (let i = 1; i <= minutesAhead / (5 / 60); i++) {
-      const nextIndex = lastIndex + i;
-      predictions.push({
-        timestamp: new Date(
-          Date.now() + i * 5 * 60 * 1000
-        ).toISOString(),
-        predicted: slope * nextIndex + intercept,
-      });
-    }
-
-    res.json({ predictions });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Prediction failed" });
-  }
-});
 
 // POST /api/emissions - store emission data
 router.post('/', async (req, res) => {
@@ -75,6 +25,25 @@ router.post('/', async (req, res) => {
     }
     const data = new EmissionData({ department, scope, current, voltage, power, energy, co2_emissions, timestamp });
     await data.save();
+
+    // High emission alert
+    const threshold = Number(process.env.HIGH_EMISSION_THRESHOLD || '0.001');
+    if (typeof co2_emissions === 'number' && co2_emissions > threshold) {
+      // Fire and forget; don't block response
+      sendHighEmissionAlert({
+        department,
+        scope,
+        value: co2_emissions,
+        timestamp: timestamp || new Date().toISOString(),
+      }).catch((e) => console.warn('Failed to send high emission alert:', e.message));
+      sendHighEmissionSMS({
+        department,
+        scope,
+        value: co2_emissions,
+        timestamp: timestamp || new Date().toISOString(),
+      }).catch((e) => console.warn('Failed to send high emission SMS:', e.message));
+    }
+
     res.json({ status: 'ok' });
   } catch (err) {
     console.error('Error saving emission data:', err);

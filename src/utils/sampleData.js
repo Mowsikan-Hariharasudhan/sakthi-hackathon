@@ -19,7 +19,7 @@ async function seedSample() {
   for (let i = 0; i < 10; i++) {
     const t = new Date(now - i * 5 * 60 * 1000);
     docs.push({
-      department: 'Logistics',
+      department: 'Melting',
       scope: 3,
       current: 1 + Math.random(),
       voltage: 230,

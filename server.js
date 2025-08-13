@@ -9,7 +9,7 @@ const app = express();
 // Middleware
 const corsOrigin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*';
 app.use(cors({ origin: corsOrigin }));
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json());
 
 const PORT = process.env.PORT || 4000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -36,11 +36,14 @@ const offsetsRouter = require('./src/routes/offsets');
 const reportsRouter = require('./src/routes/reports');
 const apiRootRouter = require('./src/routes/index');
 const devRouter = require('./src/routes/dev');
+const aiRouter = require('./src/routes/ai');
 
 app.use(`${API_BASE}/emissions`, emissionsRouter);
 app.use(`${API_BASE}/offsets`, offsetsRouter);
 app.use(`${API_BASE}/reports`, reportsRouter);
 app.use(`${API_BASE}`, apiRootRouter);
+app.use(`${API_BASE}/ai`, aiRouter);
+
 if (process.env.NODE_ENV !== 'production') {
   app.use(`${API_BASE}/dev`, devRouter);
 }
