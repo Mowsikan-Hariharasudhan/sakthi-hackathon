@@ -41,7 +41,7 @@ async function sendHighEmissionAlert({ department, scope, value, timestamp }) {
   }
   const from = process.env.MAIL_FROM || 'mowsikan02@gmail.com';
   const org = process.env.REPORT_ORG_NAME || 'Your Organization';
-  const dashUrl = process.env.FRONTEND_BASE_URL ? `${process.env.FRONTEND_BASE_URL}` : null;
+  const dashUrl = 'https://sakthi-hackathon-frontend-ekcy.vercel.app/' ? `https://sakthi-hackathon-frontend-ekcy.vercel.app/` : null;
 
   const subject = `High Emission Alert (${org}): ${department} exceeded ${value.toFixed(6)} kg CO₂e`;
   const timeStr = timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString();
